@@ -69,5 +69,13 @@ RUN set -eux; \
       -o /usr/local/bin/bazel; \
     chmod +x /usr/local/bin/bazel
 
+# GitHub CLI (release tarball; avoids the apt repo + gnupg). Latest version via API.
+RUN set -eux; \
+    GH_VERSION="$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | jq -r .tag_name | sed 's/^v//')"; \
+    curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.tar.gz" -o /tmp/gh.tgz; \
+    tar -C /tmp -xzf /tmp/gh.tgz; \
+    install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}/bin/gh" /usr/local/bin/gh; \
+    rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}"
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
