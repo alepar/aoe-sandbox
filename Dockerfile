@@ -110,6 +110,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/* \
  && pip install --break-system-packages weasyprint
 
+# mykb CLI: download the latest Release asset from the private alepar/mykb repo.
+# Token is a BuildKit secret (never persisted in a layer). Asset name matches TARGETARCH.
+# NOTE: `set -eu` (no `x`) so shell tracing never echoes the bearer token into
+# the build log (critical: CI Actions logs are readable). Token stays in the
+# BuildKit secret mount only.
+RUN --mount=type=secret,id=mykb_token \
+    set -eu; \
+    TOKEN="$(cat /run/secrets/mykb_token)"; \
+    API="https://api.github.com/repos/alepar/mykb/releases/latest"; \
+    ASSET_URL="$(curl -fsSL -H "Authorization: Bearer ${TOKEN}" "${API}" \
+      | jq -r ".assets[] | select(.name==\"mykb-linux-${TARGETARCH}\") | .url")"; \
+    test -n "${ASSET_URL}"; \
+    curl -fsSL -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/octet-stream" \
+      "${ASSET_URL}" -o /usr/local/bin/mykb; \
+    chmod +x /usr/local/bin/mykb
+
 # Language servers (installed last). rust-analyzer came with the Rust toolchain.
 # clangd (C/C++) via apt; gopls via go install; pyright (Python) via npm.
 RUN apt-get update && apt-get install -y --no-install-recommends clangd \
