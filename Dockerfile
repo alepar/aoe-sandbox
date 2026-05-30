@@ -83,5 +83,9 @@ ENV PATH="/root/.local/bin:${PATH}"
 RUN curl -fsSL https://opencode.ai/install | bash
 ENV PATH="/root/.opencode/bin:${PATH}"
 
+# qmd: local markdown search engine. Native better-sqlite3 build uses the
+# Node + build-essential + python3 already installed.
+RUN npm install -g @tobilu/qmd
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
