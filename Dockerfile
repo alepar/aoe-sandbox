@@ -63,5 +63,11 @@ RUN set -eux; \
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:${PATH}"
 
+# Bazel via bazelisk (latest release binary).
+RUN set -eux; \
+    curl -fsSL "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-${TARGETARCH}" \
+      -o /usr/local/bin/bazel; \
+    chmod +x /usr/local/bin/bazel
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
