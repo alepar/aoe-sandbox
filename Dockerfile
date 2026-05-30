@@ -44,5 +44,12 @@ RUN set -eux; \
     rm /tmp/go.tgz
 ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"
 
+# Rust via rustup, with rust-analyzer (LSP) and clippy components.
+RUN set -eux; \
+    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --no-modify-path; \
+    . "$HOME/.cargo/env"; \
+    rustup component add rust-analyzer clippy
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
