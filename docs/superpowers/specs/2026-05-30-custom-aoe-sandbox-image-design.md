@@ -75,7 +75,7 @@ No other agents; no ACP adapters (no cockpit).
 ### Knowledge-base + research CLIs
 
 - **qmd**: `npm install -g @tobilu/qmd` (native better-sqlite3 build uses the Node + build-essential + python3 already present).
-- **mykb**: download prebuilt multi-arch release binary from **private** `alepar/mykb` -> `/usr/local/bin/mykb`. CI passes a PAT build secret (`MYKB_DOWNLOAD_TOKEN`); the token never lands in an image layer.
+- **mykb**: download a prebuilt multi-arch release binary of the `mykb` CLI from **private** `alepar/mykb` -> `/usr/local/bin/mykb`, arch-detected. CI passes a PAT build secret (`MYKB_DOWNLOAD_TOKEN`); the token never lands in an image layer. **Prerequisite (separate sub-project):** `alepar/mykb` publishes no releases today and its only workflow builds the amd64 `mykb-api` *server* image, not the CLI. We must first add a release workflow to `alepar/mykb` that cross-compiles `cmd/mykb` (pure Go, `CGO_ENABLED=0`) for `linux/amd64` + `linux/arm64` and uploads them as GitHub Release assets. See Phase 0 in the build sequence.
 - **search-cli**: `cargo install agent-search` (Rust; binary `search`). Used by the deep-research skill; the skill falls back to aoe/Claude's built-in WebSearch if no provider key is configured.
 
 ### Language servers (LSPs) - implemented LAST
@@ -142,7 +142,7 @@ CI (`build.yml`): `docker/setup-qemu-action` + `setup-buildx-action`, login to G
 
 ## Prerequisites / assumptions / risks
 
-1. **`alepar/mykb` must publish multi-arch Linux release binaries** (amd64 + arm64). It is a private repo, so CI needs `MYKB_DOWNLOAD_TOKEN` (PAT with read access). If releases do not exist yet, that is a blocking prerequisite.
+1. **`alepar/mykb` publishes no releases today** (confirmed: only `build-image.yaml`, which builds the amd64 `mykb-api` server image). Blocking prerequisite handled as **Phase 0**: add a release workflow to `alepar/mykb` that cross-compiles the `cmd/mykb` CLI for `linux/amd64` + `linux/arm64` and publishes a GitHub Release. Because the repo is private, our image CI needs `MYKB_DOWNLOAD_TOKEN` (PAT with read access) to download the asset.
 2. **mykb client runtime config** (endpoint + auth env var names) to be confirmed against the `mykb` CLI when wiring it.
 3. **Host prerequisites** for the synced Claude config: superpowers plugin installed, deep-research skill cloned into `~/.claude/skills`.
 4. **Image will be large** (~3-5 GB+): JDK + jdtls, Rust, Go, Node, Bun, R, and five LSPs. Inherent to scope; base/full split is the escape hatch.
@@ -157,6 +157,7 @@ CI (`build.yml`): `docker/setup-qemu-action` + `setup-buildx-action`, login to G
 
 ## Build sequence (for the implementation plan)
 
+0. **Phase 0 - prerequisite in `alepar/mykb` (separate repo):** add a release workflow (e.g. GoReleaser or a buildx-free Go matrix) that cross-compiles `cmd/mykb` for `linux/amd64` + `linux/arm64` with `CGO_ENABLED=0` and publishes the binaries as GitHub Release assets on `v*` tags. Cut an initial release. This unblocks the mykb step below. Independent of the rest; can proceed in parallel.
 1. Repo scaffold: `Dockerfile` skeleton (debian:stable, apt layer, env, workdir, cmd) + `README` + `Justfile`.
 2. Language toolchains (Go, Rust, Node, Bun; Python/Java/R via apt).
 3. Build/CLI tools (bazel, gh, just, fd).
