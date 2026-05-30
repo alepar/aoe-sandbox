@@ -36,5 +36,13 @@ ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
     IS_SANDBOX=1
 
+# Go (official tarball; apt's Go is too old for current gopls). Latest stable.
+RUN set -eux; \
+    GO_VERSION="$(curl -fsSL https://go.dev/VERSION?m=text | head -1)"; \
+    curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-${TARGETARCH}.tar.gz" -o /tmp/go.tgz; \
+    tar -C /usr/local -xzf /tmp/go.tgz; \
+    rm /tmp/go.tgz
+ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
