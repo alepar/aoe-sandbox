@@ -110,5 +110,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/* \
  && pip install --break-system-packages weasyprint
 
+# Pre-create the credential-mount dirs aoe bind-mounts at runtime.
+RUN mkdir -p \
+    /root/.claude \
+    /root/.config/opencode \
+    /root/.local/share/opencode \
+    /root/.ssh
+
+# Expose the toolchain PATH to login shells too. The Docker ENV PATH already
+# covers `docker exec` (how aoe runs), but a login shell sources /etc/profile,
+# which resets PATH; this profile.d script re-adds the toolchain dirs so
+# `docker exec -it ... bash -l` and interactive logins find every tool.
+RUN printf 'export PATH="/root/.local/bin:/root/.opencode/bin:/root/.cargo/bin:/usr/local/go/bin:/root/go/bin:/root/.bun/bin:$PATH"\n' \
+    > /etc/profile.d/aoe-path.sh
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
