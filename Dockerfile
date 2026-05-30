@@ -110,19 +110,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/* \
  && pip install --break-system-packages weasyprint
 
-# mykb CLI: download the latest Release asset from the private alepar/mykb repo.
-# Token is a BuildKit secret (never persisted in a layer). Asset name matches TARGETARCH.
-# NOTE: `set -eu` (no `x`) so shell tracing never echoes the bearer token into
-# the build log (critical: CI Actions logs are readable). Token stays in the
-# BuildKit secret mount only.
+# mykb CLI: download the latest Release asset from alepar/mykb (public repo, so
+# no token required). A token is used only if the optional `mykb_token` secret is
+# provided, purely to raise the GitHub API rate limit (CI passes GITHUB_TOKEN).
+# `set -eu` (no `x`) so shell tracing never echoes a token into build logs.
 RUN --mount=type=secret,id=mykb_token \
     set -eu; \
-    TOKEN="$(cat /run/secrets/mykb_token)"; \
     API="https://api.github.com/repos/alepar/mykb/releases/latest"; \
-    ASSET_URL="$(curl -fsSL -H "Authorization: Bearer ${TOKEN}" "${API}" \
+    if [ -s /run/secrets/mykb_token ]; then \
+      AUTH="Authorization: Bearer $(cat /run/secrets/mykb_token)"; \
+    else \
+      AUTH="X-No-Auth: 1"; \
+    fi; \
+    ASSET_URL="$(curl -fsSL -H "${AUTH}" "${API}" \
       | jq -r ".assets[] | select(.name==\"mykb-linux-${TARGETARCH}\") | .url")"; \
     test -n "${ASSET_URL}"; \
-    curl -fsSL -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/octet-stream" \
+    curl -fsSL -H "${AUTH}" -H "Accept: application/octet-stream" \
       "${ASSET_URL}" -o /usr/local/bin/mykb; \
     chmod +x /usr/local/bin/mykb
 

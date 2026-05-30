@@ -62,4 +62,4 @@ just build-multiarch       # validate both platforms (no push)
 ## Notes
 
 - **search-cli** is installed from the [`alepar/search-cli`](https://github.com/alepar/search-cli) fork, which switches `self_update`/`readability` to rustls (resolving an OpenSSL/BoringSSL link conflict that breaks the upstream crate on Linux) and migrates the yanked `rquest` dependency to the maintained `wreq`.
-- **mykb** is downloaded from a release of the private `alepar/mykb` repo at build time (CI uses a `MYKB_DOWNLOAD_TOKEN` build secret).
+- **mykb** is downloaded at build time from the latest release of the public [`alepar/mykb`](https://github.com/alepar/mykb) repo (CLI binaries published by its `release-cli` workflow on `cli-v*` tags). No token is required; CI passes the built-in `GITHUB_TOKEN` only to raise the GitHub API rate limit.

@@ -2,9 +2,10 @@
 build:
     docker build -t aoe-sandbox:dev .
 
-# Build with the mykb token secret (needed once the mykb layer lands)
-build-secret:
-    docker build --secret id=mykb_token,env=MYKB_DOWNLOAD_TOKEN -t aoe-sandbox:dev .
+# Optional: build passing a GitHub token to raise the API rate limit for the
+# mykb release download. Not required (alepar/mykb is public); plain `build` works.
+build-token:
+    MYKB_TOKEN=$(gh auth token) docker build --secret id=mykb_token,env=MYKB_TOKEN -t aoe-sandbox:dev .
 
 # Multi-arch build (no push) to validate both platforms locally
 build-multiarch:

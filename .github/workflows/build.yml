@@ -47,5 +47,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # mykb release lives in the public alepar/mykb repo; the built-in
+          # GITHUB_TOKEN suffices (raises the API rate limit, no PAT needed).
           secrets: |
-            mykb_token=${{ secrets.MYKB_DOWNLOAD_TOKEN }}
+            mykb_token=${{ secrets.GITHUB_TOKEN }}
