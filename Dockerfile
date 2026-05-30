@@ -18,6 +18,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     jq \
     build-essential \
+    pkg-config \
+    libssl-dev \
+    clang \
+    libclang-dev \
     cmake \
     locales \
     fd-find \
@@ -86,6 +90,13 @@ ENV PATH="/root/.opencode/bin:${PATH}"
 # qmd: local markdown search engine. Native better-sqlite3 build uses the
 # Node + build-essential + python3 already installed.
 RUN npm install -g @tobilu/qmd
+
+# search-cli (Rust): multi-provider search used by the deep-research skill.
+# Installed from the alepar/search-cli fork, which switches self_update + readability
+# to rustls so the native-tls/openssl-sys stack no longer collides with rquest's
+# BoringSSL at link time (upstream paperfoot/search-cli won't build on Linux).
+# --locked uses the fork's Cargo.lock (openssl-free). Installs `search` into /root/.cargo/bin.
+RUN cargo install --git https://github.com/alepar/search-cli --rev 0c8da5c --locked
 
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
