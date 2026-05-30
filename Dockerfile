@@ -51,5 +51,13 @@ RUN set -eux; \
     rustup component add rust-analyzer clippy
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# Node.js LTS (official tarball). For JS/TS work, qmd (better-sqlite3), and the TS/pyright LSPs.
+RUN set -eux; \
+    NODE_ARCH="$(case "${TARGETARCH}" in amd64) echo x64 ;; arm64) echo arm64 ;; *) echo "unsupported ${TARGETARCH}" >&2; exit 1 ;; esac)"; \
+    NODE_VERSION="$(curl -fsSL https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false)][0].version')"; \
+    curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" -o /tmp/node.tar.xz; \
+    tar -C /usr/local --strip-components=1 -xJf /tmp/node.tar.xz; \
+    rm /tmp/node.tar.xz
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
