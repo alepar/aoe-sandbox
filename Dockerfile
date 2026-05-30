@@ -110,6 +110,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/* \
  && pip install --break-system-packages weasyprint
 
+# Language servers (installed last). rust-analyzer came with the Rust toolchain.
+# clangd (C/C++) via apt; gopls via go install; pyright (Python) via npm.
+RUN apt-get update && apt-get install -y --no-install-recommends clangd \
+ && rm -rf /var/lib/apt/lists/* \
+ && go install golang.org/x/tools/gopls@latest \
+ && npm install -g pyright
+
+# jdtls (Eclipse JDT Language Server) -> /opt/jdtls, launcher on PATH (uses default-jdk).
+RUN set -eux; \
+    mkdir -p /opt/jdtls; \
+    curl -fsSL https://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -o /tmp/jdtls.tgz; \
+    tar -C /opt/jdtls -xzf /tmp/jdtls.tgz; \
+    rm /tmp/jdtls.tgz; \
+    printf '#!/bin/sh\nexec java -jar /opt/jdtls/plugins/org.eclipse.equinox.launcher_*.jar "$@"\n' > /usr/local/bin/jdtls; \
+    chmod +x /usr/local/bin/jdtls
+
 # Pre-create the credential-mount dirs aoe bind-mounts at runtime.
 RUN mkdir -p \
     /root/.claude \
