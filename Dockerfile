@@ -98,5 +98,17 @@ RUN npm install -g @tobilu/qmd
 # --locked uses the fork's Cargo.lock (openssl-free). Installs `search` into /root/.cargo/bin.
 RUN cargo install --git https://github.com/alepar/search-cli --rev 0c8da5c --locked
 
+# deep-research skill runtime deps: WeasyPrint (PDF export) + its native libs.
+# (The skill itself is synced from the host by aoe, not baked here.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    libcairo2 \
+    libffi8 \
+    libharfbuzz0b \
+ && rm -rf /var/lib/apt/lists/* \
+ && pip install --break-system-packages weasyprint
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
