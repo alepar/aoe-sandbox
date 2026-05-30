@@ -59,5 +59,9 @@ RUN set -eux; \
     tar -C /usr/local --strip-components=1 -xJf /tmp/node.tar.xz; \
     rm /tmp/node.tar.xz
 
+# Bun (fast JS runtime). Installer auto-detects arch.
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]
