@@ -44,7 +44,7 @@ ENV LANG=en_US.UTF-8 \
 RUN set -eux; \
     GO_VERSION="$(curl -fsSL https://go.dev/VERSION?m=text | head -1)"; \
     curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-${TARGETARCH}.tar.gz" -o /tmp/go.tgz; \
-    tar -C /usr/local -xzf /tmp/go.tgz; \
+    tar -C /usr/local --no-same-owner -xzf /tmp/go.tgz; \
     rm /tmp/go.tgz
 ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"
 
@@ -60,7 +60,7 @@ RUN set -eux; \
     NODE_ARCH="$(case "${TARGETARCH}" in amd64) echo x64 ;; arm64) echo arm64 ;; *) echo "unsupported ${TARGETARCH}" >&2; exit 1 ;; esac)"; \
     NODE_VERSION="$(curl -fsSL https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false)][0].version')"; \
     curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" -o /tmp/node.tar.xz; \
-    tar -C /usr/local --strip-components=1 -xJf /tmp/node.tar.xz; \
+    tar -C /usr/local --strip-components=1 --no-same-owner -xJf /tmp/node.tar.xz; \
     rm /tmp/node.tar.xz
 
 # Bun (fast JS runtime). Installer auto-detects arch.
@@ -77,7 +77,7 @@ RUN set -eux; \
 RUN set -eux; \
     GH_VERSION="$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | jq -r .tag_name | sed 's/^v//')"; \
     curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.tar.gz" -o /tmp/gh.tgz; \
-    tar -C /tmp -xzf /tmp/gh.tgz; \
+    tar -C /tmp --no-same-owner -xzf /tmp/gh.tgz; \
     install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}/bin/gh" /usr/local/bin/gh; \
     rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}"
 
@@ -140,7 +140,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends clangd \
 RUN set -eux; \
     mkdir -p /opt/jdtls; \
     curl -fsSL https://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz -o /tmp/jdtls.tgz; \
-    tar -C /opt/jdtls -xzf /tmp/jdtls.tgz; \
+    tar -C /opt/jdtls --no-same-owner -xzf /tmp/jdtls.tgz; \
     rm /tmp/jdtls.tgz; \
     printf '#!/bin/sh\nexec java -jar /opt/jdtls/plugins/org.eclipse.equinox.launcher_*.jar "$@"\n' > /usr/local/bin/jdtls; \
     chmod +x /usr/local/bin/jdtls
