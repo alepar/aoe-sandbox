@@ -113,6 +113,14 @@ RUN set -eux; \
     install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}/bin/gh" /usr/local/bin/gh; \
     rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}"
 
+# beads (Steve Yegge's `bd` issue tracker for coding agents; release tarball).
+RUN set -eux; \
+    BD_VERSION="$(curl -fsSL https://api.github.com/repos/steveyegge/beads/releases/latest | jq -r .tag_name | sed 's/^v//')"; \
+    curl -fsSL "https://github.com/steveyegge/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_${TARGETARCH}.tar.gz" -o /tmp/bd.tgz; \
+    tar -C /tmp --no-same-owner -xzf /tmp/bd.tgz bd; \
+    install -m 0755 /tmp/bd /usr/local/bin/bd; \
+    rm -f /tmp/bd.tgz /tmp/bd
+
 # Agent CLIs. Native installers auto-detect arch. No ACP adapters (no cockpit).
 RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/root/.local/bin:${PATH}"
