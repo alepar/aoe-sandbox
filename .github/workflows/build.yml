@@ -47,6 +47,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Registry layer cache (stored as a :buildcache tag in GHCR). Unchanged
+          # layers - including the slow Rust/BoringSSL/gopls compiles - restore from
+          # cache instead of rebuilding. Registry (not gha) cache because the
+          # multi-arch cache exceeds gha's 10GB limit. mode=max caches intermediate
+          # layers too; image-manifest/oci-mediatypes keep it GHCR-compatible.
+          cache-from: type=registry,ref=ghcr.io/alepar/aoe-sandbox:buildcache
+          cache-to: type=registry,ref=ghcr.io/alepar/aoe-sandbox:buildcache,mode=max,image-manifest=true,oci-mediatypes=true
           # mykb release lives in the public alepar/mykb repo; the built-in
           # GITHUB_TOKEN suffices (raises the API rate limit, no PAT needed).
           secrets: |
